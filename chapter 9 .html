@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Class 10 Notes</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,600&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap');
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body {
+  margin: 0; padding: 0;
+  width: 100%; height: 100%;
+  background: var(--bg-60);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text-main);
+  overflow: hidden;
+  user-select: none;
+}
+
+#app {
+  width: 100%;
+  max-width: 480px;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  background: #EFF4FA;
+  transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+button, input, select, textarea { font-family: inherit; }
+button { border: none; cursor: pointer; background: none; }
+button:focus-visible, .subject-chip:focus-visible, .bento-card:focus-visible, input:focus-visible {
+  outline: 2.5px solid var(--accent-10, #2563EB);
+  outline-offset: 2px;
+}
+.note-text { user-select: text; -webkit-user-select: text; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- SMOOTH ANIMATIONS ---------- */
+.animated-btn {
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.animated-btn:active {
+  transform: scale(0.95) !important;
+}
+
+.scroll-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 95px;
+  scroll-behavior: smooth;
+  will-change: transform, opacity;
+}
+::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+/* Page View Animations */
+.view-enter {
+  animation: slideFadeIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes slideFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ---------- TOPBAR ---------- */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; height: 60px; position: sticky; top: 0; z-index: 25;
+  background: var(--bg-60);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+  transition: all 0.3s ease;
+}
+
+/* ---------- CARD COMPONENTS ---------- */
+.card {
+  border-radius: 24px;
+  padding: 20px;
+  background: var(--surface-30);
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.card:active {
+  transform: scale(0.985);
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ---------- HERO BANNER ---------- */
+.banner-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 26px;
+  padding: 24px;
+  min-height: 180px;
+  background: var(--banner-grad);
+  color: #FFFFFF;
+  box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.banner-decor {
+  position: absolute; border-radius: 50%; background: rgba(255,255,255,0.12); pointer-events: none;
+}
+.banner-decor-1 { width: 160px; height: 160px; top: -60px; right: -40px; }
+.banner-decor-2 { width: 110px; height: 110px; bottom: -50px; right: 60px; background: rgba(255,255,255,0.06); }
+
+.banner-cta {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #FFFFFF; color: #3A63ED; font-weight: 700; font-size: 13.5px;
+  padding: 11px 20px; border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* ---------- STAT & CHIP CARDS ---------- */
+.stat-card {
+  border-radius: 22px; padding: 18px; background: var(--surface-30); border: 1px solid var(--border);
+  box-shadow: 0 8px 20px -8px rgba(0,0,0,0.04);
+}
+.stat-icon {
+  width: 40px; height: 40px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+}
+.stat-num { font-family: 'Fraunces', serif; font-weight: 700; font-size: 24px; margin: 0; color: var(--text-main); }
+.stat-label { font-size: 12px; color: var(--text-soft); margin: 2px 0 0; font-weight: 500; }
+
+.subject-chip {
+  flex-shrink: 0; display: flex; align-items: center; gap: 8px;
+  min-height: 44px;
+  padding: 10px 18px; border-radius: 999px; font-size: 13.5px; font-weight: 600;
+  background: var(--surface-30); border: 1px solid var(--border); color: var(--text-main);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chip-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; }
+
+/* ---------- PROGRESS & BAR CHART ---------- */
+.prog-track { border-radius: 999px; overflow: hidden; background: #E1ECF7; }
+.bar-chart { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; height: 140px; padding-top: 10px; }
+.bar-col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; flex: 1; height: 100%; }
+.bar-value { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; margin-bottom: 6px; color: #64748B; font-weight: 600; }
+.bar-fill { width: 100%; max-width: 28px; border-radius: 8px 8px 4px 4px; transition: height 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+.bar-day { font-size: 11.5px; margin-top: 8px; color: #64748B; font-weight: 600; }
+
+/* ---------- FLOATING BOTTOM NAV ---------- */
+.nav-bar {
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: 18px;
+  width: calc(100% - 36px); max-width: 410px;
+  border-radius: 28px; padding: 6px 10px; display: flex; justify-content: space-around;
+  background: var(--nav-bg);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.4); z-index: 30;
+  backdrop-filter: blur(12px);
+}
+.nav-btn { flex: 1; display: flex; justify-content: center; padding: 4px 0; min-height: 44px; }
+.nav-btn-inner {
+  width: 48px; height: 44px; border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---------- MODAL & SHEET ---------- */
+.sheet-backdrop {
+  position: fixed; inset: 0; z-index: 50;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: backdropFade 0.25s ease forwards;
+}
+@keyframes backdropFade { from { opacity: 0; } to { opacity: 1; } }
+
+.sheet {
+  width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto;
+  border-radius: 32px 32px 0 0; background: #FFFFFF; padding: 24px;
+  box-shadow: 0 -12px 48px rgba(0,0,0,0.22);
+  animation: sheetUp 0.32s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+.badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 10px; font-size: 11.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+
+.theme-dot {
+  width: 44px; height: 44px; border-radius: 50%; border: 3px solid transparent;
+  padding: 0; cursor: pointer; transition: all 0.2s ease;
+}
+.theme-dot.active {
+  border-color: #fff; box-shadow: 0 0 0 2px var(--accent-10);
+}
+
+/* ---------- DARK MODE ELEVATION ---------- */
+/* Flat black-on-black shadows are invisible, so dark mode gets its own
+   elevation treatment: a soft outer shadow plus a hairline inner highlight
+   so cards visibly lift off the background instead of blending into it. */
+body.dark .card,
+body.dark .stat-card {
+  box-shadow: 0 14px 32px -10px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+body.dark .banner-card {
+  box-shadow: 0 22px 48px -14px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.06);
+}
+body.dark .nav-bar {
+  box-shadow: 0 20px 44px -10px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+body.dark .subject-chip,
+body.dark .banner-cta {
+  box-shadow: 0 6px 16px -4px rgba(0,0,0,0.4);
+}
+
+/* ---------- COLORFUL SUBJECT BENTO CARDS ---------- */
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.bento-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  padding: 18px;
+  min-height: 138px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #FFFFFF;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+}
+.bento-card:active {
+  transform: scale(0.96);
+}
+.bento-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.bento-icon-wrap {
+  width: 38px; height: 38px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 2;
+}
+.bento-label {
+  position: relative; z-index: 2;
+  font-weight: 800; font-size: 13px; letter-spacing: 0.06em;
+  text-transform: uppercase; line-height: 1.3; margin: 0;
+}
+
+/* ---------- EMPTY STATES ---------- */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 48px 24px;
+}
+.empty-icon-wrap {
+  width: 72px; height: 72px; border-radius: 24px; background: var(--accent-soft);
+  display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
+}
+.empty-title { font-family: 'Fraunces', serif; font-weight: 700; font-size: 17px; margin: 0 0 6px; color: var(--text-main); }
+.empty-sub { font-size: 13px; color: var(--text-soft); margin: 0 0 20px; font-weight: 500; line-height: 1.5; max-width: 260px; }
+.empty-cta {
+  padding: 12px 22px; border-radius: 14px; background: var(--accent-10); color: #fff;
+  font-weight: 700; font-size: 13.5px; display: inline-flex; align-items: center; gap: 6px;
+  min-height: 44px; box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* ---------- SIGNATURE: HIGHLIGHTER MARKER SWEEP ----------
+   The one bold, recurring gesture of this design: key headings get a
+   hand-drawn marker stroke that sweeps in behind them once, the way a
+   student highlights the important line in a textbook. Used sparingly —
+   only on the hero line and section titles — so it stays a signature,
+   not decoration. */
+.marker-heading {
+  position: relative;
+  display: inline;
+  white-space: normal;
+}
+.marker-heading::before {
+  content: "";
+  position: absolute;
+  left: -4px; right: -4px;
+  bottom: 0.06em;
+  height: 0.42em;
+  background: var(--accent-soft);
+  border-radius: 3px 8px 4px 9px / 6px 4px 8px 3px;
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: markerSweep 0.55s 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  z-index: -1;
+}
+body.dark .marker-heading::before { opacity: 0.85; }
+.marker-heading--brand::before {
+  background: #FFE066;
+}
+@keyframes markerSweep {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marker-heading::before { animation: none; transform: scaleX(1); }
+}
+
+/* ---------- SIGNATURE: CIRCULAR MASTERY RING ---------- */
+.ring-wrap { position: relative; width: 96px; height: 96px; flex-shrink: 0; }
+.ring-wrap svg { transform: rotate(-90deg); }
+.ring-track { fill: none; stroke: var(--border); stroke-width: 9; }
+.ring-fill {
+  fill: none; stroke: var(--accent-10); stroke-width: 9; stroke-linecap: round;
+  transition: stroke-dashoffset 0.9s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ring-center {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+
+/* ---------- NOTEBOOK-TAB CHAPTER CARDS ---------- */
+.chapter-card { position: relative; overflow: visible !important; }
+.chapter-tab {
+  position: absolute; top: -9px; left: 20px;
+  padding: 3px 12px 5px; border-radius: 6px 6px 3px 3px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 700;
+  color: #fff; background: var(--accent-10);
+  box-shadow: 0 3px 8px -2px rgba(0,0,0,0.25);
+  transform: rotate(-2deg);
+}
+
+/* ---------- PAPER GRAIN (subtle, used only on the hero banner) ---------- */
+.paper-grain {
+  position: absolute; inset: 0; opacity: 0.08; pointer-events: none;
+  background-image: radial-gradient(rgba(255,255,255,0.9) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+/* ---------- CONFETTI (perfect quiz score) ---------- */
+.confetti-piece {
+  position: fixed; top: -10px; z-index: 80; border-radius: 2px; pointer-events: none;
+  animation: confettiFall linear forwards;
+}
+@keyframes confettiFall {
+  to { transform: translateY(110vh) rotate(540deg); opacity: 0.3; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+/* ============================================================
+   HAPTIC FEEDBACK HELPER
+   ============================================================ */
+function haptic(intensity = "light") {
+  if (!('vibrate' in navigator)) return;
+  if (intensity === "light") navigator.vibrate(8);
+  else if (intensity === "medium") navigator.vibrate(15);
+  else if (intensity === "heavy") navigator.vibrate([20, 30, 20]);
+}
+
+/* ============================================================
+   CONFETTI BURST — celebrates a perfect quiz score
+   ============================================================ */
+function fireConfetti() {
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const colors = ["#3A63ED", "#F2A340", "#3FAE86", "#E4643A", "#9333EA"];
+  for (let i = 0; i < 32; i++) {
+    const el = document.createElement("div");
+    el.className = "confetti-piece";
+    const size = 5 + Math.random() * 5;
+    el.style.width = size + "px";
+    el.style.height = size * 0.4 + "px";
+    el.style.left = Math.random() * 100 + "vw";
+    el.style.background = colors[i % colors.length];
+    el.style.animationDuration = (1.6 + Math.random() * 1.2) + "s";
+    el.style.transform = `rotate(${Math.random() * 360}deg)`;
+    document.body.appendChild(el);
+    el.addEventListener("animationend", () => el.remove());
+  }
+}
+
+/* ============================================================
+   APPLICATION DATA (Class 10 CBSE / State Curriculum)
+   ============================================================ */
+const APP_DATA = [
+  {
+    id: "science",
+    name: "Science",
+    studyTime: "68 hrs",
+    subSections: [
+      { id: "chem", title: "Chemistry" },
+      { id: "phy", title: "Physics" },
+      { id: "bio", title: "Biology" }
+    ],
+    chapters: [
+      {
+        id: "chem-1",
+        subSectionId: "chem",
+        title: "Chemical Reactions & Equations",
+        updated: "Today",
+        studyTime: "35 min",
+        isCompleted: true,
+        topics: [
+          {
+            id: "chem-1-t1",
+            title: "1. Balancing Chemical Equations",
+            imageUrl: "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=600&q=80",
+            bulletPoints: [
+              "Law of Conservation of Mass: Mass can neither be created nor destroyed in a chemical reaction.",
+              "Total mass of elements on reactant side = Total mass of elements on product side.",
+              "Step 1: Write skeleton equation, e.g., Fe + H₂O → Fe₃O₄ + H₂.",
+              "Step 2: Balance oxygen atoms first, then hydrogen, and lastly iron atoms.",
+              "Balanced Equation: 3Fe + 4H₂O → Fe₃O₄ + 4H₂."
+            ],
+            summary: "Balancing equations ensures the total number of atoms of each element remains identical before and after the chemical change."
+          },
+          {
+            id: "chem-1-t2",
+            title: "2. Types of Chemical Reactions",
+            imageUrl: "https://images.unsplash.com/photo-1603126857599-f6e157fa2fe6?auto=format&fit=crop&w=600&q=80",
+            bulletPoints: [
+              "Combination Reaction: Two or more substances combine to form a single product (CaO + H₂O → Ca(OH)₂ + Heat).",
+              "Decomposition Reaction: Single reactant breaks down to give simpler products (Thermal, Electrolytic, Photolytic).",
+              "Displacement Reaction: More reactive element displaces less reactive element from its solution (Fe + CuSO₄ → FeSO₄ + Cu).",
+              "Oxidation & Reduction (Redox): Gain of oxygen is oxidation; loss of oxygen is reduction."
+            ],
+            summary: "Reactions are categorized by how atoms recombine, release energy, or exchange electrons."
+          }
+        ],
+        quiz: [
+          {
+            q: "Which law states that mass cannot be created or destroyed during a chemical reaction?",
+            options: ["Law of Definite Proportions", "Law of Conservation of Mass", "Avogadro's Law", "Dalton's Atomic Law"],
+            correct: 1,
+            exp: "The Law of Conservation of Mass requires that total reactant mass equals total product mass."
+          },
+          {
+            q: "What type of reaction is CaO + H₂O → Ca(OH)₂?",
+            options: ["Decomposition", "Combination", "Displacement", "Double Displacement"],
+            correct: 1,
+            exp: "Two compounds combine into a single product, making it a Combination Reaction."
+          }
+        ]
+      },
+      {
+        id: "phy-1",
+        subSectionId: "phy",
+        title: "Light: Reflection & Refraction",
+        updated: "2 days ago",
+        studyTime: "45 min",
+        isCompleted: false,
+        topics: [
+          {
+            id: "phy-1-t1",
+            title: "1. Laws of Reflection & Spherical Mirrors",
+            imageUrl: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=600&q=80",
+            bulletPoints: [
+              "First Law: Angle of incidence (i) = Angle of reflection (r).",
+              "Second Law: Incident ray, reflected ray, and normal at the point of incidence all lie in the same plane.",
+              "Concave Mirror: Converging mirror, produces real/inverted (or virtual/erect) images based on object position.",
+              "Convex Mirror: Diverging mirror, always produces virtual, erect, and diminished images. Used in rear-view mirrors.",
+              "Mirror Formula: 1/f = 1/v + 1/u (f = focal length, v = image distance, u = object distance)."
+            ],
+            summary: "Spherical mirrors form images according to precise geometric laws and the sign convention."
+          },
+          {
+            id: "phy-1-t2",
+            title: "2. Refraction & Snell's Law",
+            imageUrl: "https://images.unsplash.com/photo-1507668077129-56e32842fceb?auto=format&fit=crop&w=600&q=80",
+            bulletPoints: [
+              "Refraction occurs due to change in speed of light when traveling from one medium to another.",
+              "Snell's Law: sin(i) / sin(r) = constant (Refractive Index n).",
+              "Lens Formula: 1/f = 1/v - 1/u.",
+              "Power of Lens P = 1 / f (in meters), measured in Dioptres (D)."
+            ],
+            summary: "Bending of light across media powers optical instruments like cameras, microscopes, and spectacles."
+          }
+        ],
+        quiz: [
+          {
+            q: "What type of mirror is used in vehicle rear-view mirrors?",
+            options: ["Plane Mirror", "Concave Mirror", "Convex Mirror", "Cylindrical Mirror"],
+            correct: 2,
+            exp: "Convex mirrors give a wider field of view and always produce upright, diminished images."
+          },
+          {
+            q: "The SI unit of power of a lens is:",
+            options: ["Meter", "Watt", "Dioptre", "Joule"],
+            correct: 2,
+            exp: "Power of a lens (P = 1/f) is measured in Dioptres (D)."
+          }
+        ]
+      },
+      {
+        id: "bio-1",
+        subSectionId: "bio",
+        title: "Life Processes: Nutrition & Respiration",
+        updated: "Yesterday",
+        studyTime: "50 min",
+        isCompleted: true,
+        topics: [
+          {
+            id: "bio-1-t1",
+            title: "1. Autotrophic & Heterotrophic Nutrition",
+            imageUrl: "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=600&q=80",
+            bulletPoints: [
+              "Photosynthesis: 6CO₂ + 12H₂O + Sunlight + Chlorophyll → C₆H₁₂O₆ + 6O₂ + 6H₂O.",
+              "Stomata: Microscopic pores on leaf surfaces bounded by guard cells that regulate gas exchange.",
+              "Human Digestion: Amylase digests starch in mouth; HCl & Pepsin digest proteins in stomach; Bile & Lipase complete digestion in Small Intestine.",
+              "Villi: Finger-like projections in small intestine maximizing surface area for nutrient absorption."
+            ],
+            summary: "Nutrition supplies organisms with organic molecules essential for growth, tissue repair, and cellular energy."
+          }
+        ],
+        quiz: [
+          {
+            q: "Which enzyme in human saliva breaks down starch into simple sugars?",
+            options: ["Pepsin", "Trypsin", "Salivary Amylase", "Lipase"],
+            correct: 2,
+            exp: "Salivary Amylase initiates carbohydrate digestion inside the oral cavity."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "math",
+    name: "Mathematics",
+    studyTime: "54 hrs",
+    subSections: [],
+    chapters: [
+      {
+        id: "math-1",
+        subSectionId: null,
+        title: "Real Numbers",
+        updated: "3 days ago",
+        studyTime: "40 min",
+        isCompleted: true,
+        topics: [
+          {
+            id: "math-1-t1",
+            title: "1. Fundamental Theorem of Arithmetic",
+            imageUrl: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=600&q=80",
+            bulletPoints: [
+              "Statement: Every composite number can be uniquely expressed as a product of prime factors.",
+              "Key Property: HCF(a, b) × LCM(a, b) = a × b for any two positive integers.",
+              "Irrationality Proof: Proving √2, √3, or √5 are irrational using proof by contradiction.",
+              "If prime p divides a², then p divides a."
+            ],
+            summary: "Prime factorization forms the foundation of number theory, LCM/HCF calculations, and irrationality proofs."
+          }
+        ],
+        quiz: [
+          {
+            q: "If HCF(a, b) = 4 and LCM(a, b) = 48 with a = 12, what is b?",
+            options: ["16", "12", "24", "18"],
+            correct: 0,
+            exp: "Using HCF × LCM = a × b → 4 × 48 = 12 × b → 192 / 12 = 16."
+          }
+        ]
+      },
+      {
+        id: "math-2",
+        subSectionId: null,
+        title: "Quadratic Equations",
+        updated: "1 week ago",
+        studyTime: "38 min",
+        isCompleted: false,
+        topics: [
+          {
+            id: "math-2-t1",
+            title: "1. Standard Form & Discriminant",
+            imageUrl: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=600&q=80",
+            bulletPoints: [
+              "Standard Form: ax² + bx + c = 0 (a ≠ 0).",
+              "Quadratic Formula: x = [-b ± √(b² - 4ac)] / 2a.",
+              "Discriminant D = b² - 4ac determines root nature:",
+              "• D > 0: Two distinct real roots.",
+              "• D = 0: Two equal real roots.",
+              "• D < 0: No real roots."
+            ],
+            summary: "Analyzing the discriminant gives instant clarity on equation solutions."
+          }
+        ],
+        quiz: [
+          {
+            q: "If D = b² - 4ac = 0, the roots of the quadratic equation are:",
+            options: ["Real and distinct", "Real and equal", "Imaginary", "Infinite"],
+            correct: 1,
+            exp: "A zero discriminant signifies two identical real roots (-b/2a)."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "sst",
+    name: "Social Studies",
+    studyTime: "48 hrs",
+    subSections: [
+      { id: "hist", title: "History" },
+      { id: "geo", title: "Geography" },
+      { id: "pol", title: "Civics" }
+    ],
+    chapters: [
+      {
+        id: "hist-1",
+        subSectionId: "hist",
+        title: "The Rise of Nationalism in Europe",
+        updated: "4 days ago",
+        studyTime: "42 min",
+        isCompleted: true,
+        topics: [
+          {
+            id: "hist-1-t1",
+            title: "1. French Revolution & Idea of the Nation",
+            imageUrl: "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&w=600&q=80",
+            bulletPoints: [
+              "1789 French Revolution introduced La Patrie (the fatherland) and Le Citoyen (the citizen).",
+              "Napoleonic Code (1804): Abolished feudal system, established equality before law, secured property rights.",
+              "Unification of Italy: Led by Cavour, Garibaldi (Red Shirts), and King Victor Emmanuel II.",
+              "Unification of Germany: Engineered by Otto von Bismarck through three strategic wars."
+            ],
+            summary: "Nationalism transformed Europe from multi-ethnic dynastic empires into modern constitutional nation-states."
+          }
+        ],
+        quiz: [
+          {
+            q: "Who was known as the chief architect of German Unification?",
+            options: ["Giuseppe Mazzini", "Otto von Bismarck", "Napoleon Bonaparte", "Victor Emmanuel II"],
+            correct: 1,
+            exp: "Otto von Bismarck unified Germany using his 'Blood and Iron' strategy."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: "english",
+    name: "English",
+    studyTime: "32 hrs",
+    subSections: [],
+    chapters: [
+      {
+        id: "eng-1",
+        subSectionId: null,
+        title: "A Letter to God (First Flight)",
+        updated: "5 days ago",
+        studyTime: "25 min",
+        isCompleted: true,
+        topics: [
+          {
+            id: "eng-1-t1",
+            title: "1. Summary & Key Themes",
+            imageUrl: "https://images.unsplash.com/photo-1516962215378-7fa2e137ae93?auto=format&fit=crop&w=600&q=80",
+            bulletPoints: [
+              "Protagonist: Lencho, a hard-working farmer whose cornfield was destroyed by a devastating hailstorm.",
+              "Unshakable Faith: Writes a letter directly to God requesting 100 pesos to re-sow his field.",
+              "Postmaster's Kindness: Collects 70 pesos from employees to keep Lencho's faith alive.",
+              "Irony: Lencho suspects the post office employees of stealing the remaining 30 pesos, calling them a 'bunch of crooks'."
+            ],
+            summary: "Highlights absolute faith alongside the poignant irony of human misunderstanding."
+          }
+        ],
+        quiz: [
+          {
+            q: "How many pesos did Lencho ask God for, and how many did he receive?",
+            options: ["Asked 100, received 50", "Asked 100, received 70", "Asked 50, received 50", "Asked 70, received 100"],
+            correct: 1,
+            exp: "Lencho asked for 100 pesos and received 70 pesos collected by the postmaster."
+          }
+        ]
+      }
+    ]
+  }
+];
+
+/* ============================================================
+   THEMES (60-30-10 Rule)
+   ============================================================ */
+const THEMES = {
+  blue: {
+    bg: "#F3F5F8", surface: "#FFFFFF", accent: "#2563EB", accentDeep: "#1D4ED8", accentSoft: "#DBEAFE",
+    text: "#1E2937", textSoft: "#64748B", border: "#E2E8F0", nav: "#1E293B",
+    accentDark: "#5F9CFB", accentSoftDark: "rgba(95,156,251,0.16)"
+  },
+  pink: {
+    bg: "#F3F5F8", surface: "#FFFFFF", accent: "#E11D48", accentDeep: "#BE123C", accentSoft: "#FFE4E6",
+    text: "#1E2937", textSoft: "#64748B", border: "#E2E8F0", nav: "#1E293B",
+    accentDark: "#FB7185", accentSoftDark: "rgba(251,113,133,0.16)"
+  },
+  green: {
+    bg: "#F3F5F8", surface: "#FFFFFF", accent: "#16A34A", accentDeep: "#15803D", accentSoft: "#DCFCE7",
+    text: "#1E2937", textSoft: "#64748B", border: "#E2E8F0", nav: "#1E293B",
+    accentDark: "#4ADE80", accentSoftDark: "rgba(74,222,128,0.16)"
+  },
+  orange: {
+    bg: "#F3F5F8", surface: "#FFFFFF", accent: "#EA580C", accentDeep: "#C2410C", accentSoft: "#FFEDD5",
+    text: "#1E2937", textSoft: "#64748B", border: "#E2E8F0", nav: "#1E293B",
+    accentDark: "#FB923C", accentSoftDark: "rgba(251,146,60,0.16)"
+  },
+  purple: {
+    bg: "#F3F5F8", surface: "#FFFFFF", accent: "#9333EA", accentDeep: "#7E22CE", accentSoft: "#F3E8FF",
+    text: "#1E2937", textSoft: "#64748B", border: "#E2E8F0", nav: "#1E293B",
+    accentDark: "#C084FC", accentSoftDark: "rgba(192,132,252,0.16)"
+  }
+};
+
+/* ============================================================
+   FIREBASE INIT (Auth + Firestore persistence)
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "AIzaSyAj3Z0Dv5q3ZR31WezZW2n3Wiaxzz4sk6U",
+  authDomain: "students-d2341.firebaseapp.com",
+  projectId: "students-d2341",
+  storageBucket: "students-d2341.firebasestorage.app",
+  messagingSenderId: "473088819993",
+  appId: "1:473088819993:web:b6638183e10bf977007b88"
+};
+firebase.initializeApp(firebaseConfig);
+const fbAuth = firebase.auth();
+const db = firebase.firestore();
+let currentUid = null;
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function daysBetween(a, b) {
+  const d1 = new Date(a), d2 = new Date(b);
+  return Math.round((d2 - d1) / 86400000);
+}
+
+/* Loads (or creates) the signed-in user's Firestore profile, applies
+   real streak math, and hands control back to render(). Runs once
+   per app load after anonymous auth resolves. */
+function initUserSession(uid) {
+  currentUid = uid;
+  const ref = db.collection("users").doc(uid);
+  ref.get().then(doc => {
+    const data = doc.exists ? doc.data() : {};
+    STATE.userName = data.name || null;
+    STATE.currentStreak = data.currentStreak || 0;
+    STATE.longestStreak = data.longestStreak || 0;
+    STATE.lastStudyDate = data.lastStudyDate || null;
+    STATE.completedTopics = data.completedTopics || [];
+    STATE.lastRead = data.lastRead || null;
+
+    // Seed demo completion state once, from the static content flags,
+    // so a brand-new user still sees the sample chapter's progress —
+    // after this, completion is driven only by real user interaction.
+    if (!doc.exists) {
+      const seeded = [];
+      APP_DATA.forEach(s => s.chapters.forEach(c => {
+        if (c.isCompleted) c.topics.forEach(t => seeded.push(t.id));
+      }));
+      STATE.completedTopics = seeded;
+    }
+
+    // Real streak calculation — runs once per calendar day.
+    const today = todayStr();
+    if (STATE.lastStudyDate !== today) {
+      if (STATE.lastStudyDate && daysBetween(STATE.lastStudyDate, today) === 1) {
+        STATE.currentStreak += 1;
+      } else {
+        STATE.currentStreak = 1;
+      }
+      STATE.longestStreak = Math.max(STATE.longestStreak, STATE.currentStreak);
+      STATE.lastStudyDate = today;
+    }
+
+    STATE.userLoaded = true;
+    if (!STATE.userName) STATE.onboardingOpen = true;
+
+    persistUser({
+      name: STATE.userName || null,
+      currentStreak: STATE.currentStreak,
+      longestStreak: STATE.longestStreak,
+      lastStudyDate: STATE.lastStudyDate,
+      completedTopics: STATE.completedTopics,
+      lastRead: STATE.lastRead
+    });
+    render();
+  }).catch(err => {
+    console.error("Failed to load user profile:", err);
+    STATE.userLoaded = true;
+    STATE.onboardingOpen = true;
+    render();
+  });
+}
+
+function persistUser(partial) {
+  if (!currentUid) return;
+  db.collection("users").doc(currentUid).set(partial, { merge: true })
+    .catch(err => console.error("Failed to save profile:", err));
+}
+
+fbAuth.signInAnonymously().catch(err => console.error("Anonymous sign-in failed:", err));
+fbAuth.onAuthStateChanged(user => {
+  if (user) initUserSession(user.uid);
+});
+
+/* STATE */
+const STATE = {
+  isDark: localStorage.getItem("notes_isDark") === "true",
+  themeId: localStorage.getItem("notes_theme") || "blue",
+  tab: "home",           // home | library | progress | settings
+  flow: null,           // null | "chapters" | "topicReader" | "quiz"
+  subjectId: "science",
+  subSectionId: null,
+  chapterId: "chem-1",
+  activeTopicIndex: 0,
+  quizAnswers: {},
+  quizSubmitted: false,
+  isSpeaking: false,
+  aiModalOpen: false,
+  aiQuery: "",
+  aiResponse: "",
+
+  // --- Real user data (synced with Firestore, replaces old fakes) ---
+  userLoaded: false,          // true once Firestore profile has loaded
+  userName: null,             // null until onboarding is completed
+  onboardingOpen: false,
+  onboardingNameDraft: "",
+  currentStreak: 0,
+  longestStreak: 0,
+  lastStudyDate: null,
+  completedTopics: [],        // array of topic ids the user has finished
+  lastRead: null,             // { subjectId, subSectionId, chapterId, topicIndex }
+  chapterSearch: ""           // chapters-list search query
+};
+
+function applyTheme(id, isDark = STATE.isDark) {
+  const t = THEMES[id] || THEMES.blue;
+  STATE.themeId = id;
+  STATE.isDark = isDark;
+  localStorage.setItem("notes_theme", id);
+  localStorage.setItem("notes_isDark", isDark);
+  
+  const r = document.documentElement.style;
+  
+  if (isDark) {
+    const accentDark = t.accentDark;
+    // Graphite base — never pure black. Surface is lifted a couple shades
+    // above the page background with a faint hint of the chosen accent so
+    // each theme still has a distinct personality in dark mode.
+    r.setProperty("--bg-60", "#121316");
+    r.setProperty("--surface-30", `color-mix(in srgb, ${accentDark} 4%, #1C1F26)`);
+    r.setProperty("--text-main", "#F3F5F8");
+    r.setProperty("--text-soft", "#98A2B3");
+    r.setProperty("--border", "#2A2E37");
+    r.setProperty("--nav-bg", "#1A1D23");
+    r.setProperty("--accent-10", accentDark);
+    r.setProperty("--accent-soft", t.accentSoftDark);
+    r.setProperty("--accent-deep", t.accent);
+    r.setProperty("--banner-grad", `linear-gradient(135deg, color-mix(in srgb, ${accentDark} 26%, #1A1D24) 0%, #0E0F13 100%)`);
+  } else {
+    r.setProperty("--bg-60", t.bg);
+    r.setProperty("--surface-30", t.surface);
+    r.setProperty("--text-main", t.text);
+    r.setProperty("--text-soft", t.textSoft);
+    r.setProperty("--border", t.border);
+    r.setProperty("--nav-bg", t.nav);
+    r.setProperty("--accent-10", t.accent);
+    r.setProperty("--accent-soft", t.accentSoft);
+    r.setProperty("--accent-deep", t.accentDeep);
+    r.setProperty("--banner-grad", `linear-gradient(135deg, ${t.accent} 0%, ${t.accentDeep} 100%)`);
+  }
+}
+
+// Initial theme apply
+applyTheme(STATE.themeId, STATE.isDark);
+
+/* ============================================================
+   CLEAN VECTOR LINE ART ICONS (Minimalist & Precision Geometric)
+   ============================================================ */
+function svgIcon(name, color = "currentColor", size = 20) {
+  const c = `width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"`;
+  const p = {
+    home: `<path d="M3 9.5L12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z"/>`,
+    library: `<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>`,
+    chart: `<path d="M18 20V10M12 20V4M6 20v-6"/>`,
+    gear: `<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>`,
+    left: `<path d="M15 18l-6-6 6-6"/>`,
+    right: `<path d="M9 18l6-6-6-6"/>`,
+    check: `<path d="M20 6L9 17l-5-5"/>`,
+    sparkles: `<path d="M12 3l1.912 5.813a2 2 0 0 0 1.275 1.275L21 12l-5.813 1.912a2 2 0 0 0-1.275 1.275L12 21l-1.912-5.813a2 2 0 0 0-1.275-1.275L3 12l5.813-1.912a2 2 0 0 0 1.275-1.275L12 3z"/>`,
+    volume: `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>`,
+    x: `<path d="M18 6L6 18M6 6l12 12"/>`,
+    book: `<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>`,
+    flame: `<path d="M12 2c0 0-6 4.5-6 10a6 6 0 0 0 12 0c0-5.5-6-10-6-10z"/><path d="M12 12c0 0-2 1.5-2 3a2 2 0 0 0 4 0c0-1.5-2-3-2-3z"/>`,
+    trophy: `<path d="M6 9H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h2"/><path d="M18 9h2a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>`,
+    clock: `<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/>`,
+    target: `<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>`,
+    send: `<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>`,
+    science: `<path d="M9 3h6"/><path d="M10 3v5.2L5.5 16A2 2 0 0 0 7.3 19h9.4a2 2 0 0 0 1.8-3L14 8.2V3"/><path d="M8 14h8"/><circle cx="10.5" cy="16.5" r="0.6" fill="${color}" stroke="none"/><circle cx="13" cy="17.5" r="0.6" fill="${color}" stroke="none"/>`,
+    math: `<circle cx="12" cy="12" r="9"/><path d="M8 9h5"/><path d="M8 15h8"/><path d="M9.5 9v6"/>`,
+    english: `<path d="M6 4h9a3 3 0 0 1 3 3v13l-3-2-3 2-3-2-3 2V7a3 3 0 0 1 3-3z"/><path d="M9 9h6"/><path d="M9 12.5h6"/>`,
+    sst: `<circle cx="12" cy="12" r="9"/><path d="M12 3a14.5 14.5 0 0 0 0 18 14.5 14.5 0 0 0 0-18"/><path d="M3.5 9h17"/><path d="M3.5 15h17"/>`,
+    chemistry: `<path d="M9.5 3h5"/><path d="M10.5 3v5.6L5.8 16.4A1.8 1.8 0 0 0 7.4 19h9.2a1.8 1.8 0 0 0 1.6-2.6L13.5 8.6V3"/><path d="M8.3 13.5h7.4"/><circle cx="10" cy="16" r="0.6" fill="${color}" stroke="none"/><circle cx="13.5" cy="17" r="0.6" fill="${color}" stroke="none"/><circle cx="12" cy="15" r="0.6" fill="${color}" stroke="none"/>`,
+    physics: `<circle cx="12" cy="12" r="1.6" fill="${color}" stroke="none"/><ellipse cx="12" cy="12" rx="9" ry="3.6"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="3.6" transform="rotate(120 12 12)"/>`,
+    biology: `<path d="M6 3c0 6 12 6 12 12"/><path d="M18 21c0-6-12-6-12-12"/><path d="M7.5 5.5h3"/><path d="M9.5 8.5h3"/><path d="M12 11.5h3"/><path d="M13.5 14.5h3"/><path d="M16.5 17.5h1.5"/>`,
+    history: `<path d="M4 19V7a2 2 0 0 1 2-2h3v14"/><path d="M9 5h6v14"/><path d="M15 5h3a2 2 0 0 1 2 2v12"/><path d="M4 19h16"/><path d="M9 9h.01"/><path d="M9 12h.01"/><path d="M15 9h.01"/><path d="M15 12h.01"/>`,
+    geography: `<circle cx="12" cy="12" r="9"/><path d="M12 3a14.5 14.5 0 0 0 0 18 14.5 14.5 0 0 0 0-18"/><path d="M3.5 9h17"/><path d="M3.5 15h17"/>`,
+    civics: `<path d="M12 3l8 4H4z"/><path d="M5 9v9"/><path d="M9.5 9v9"/><path d="M14.5 9v9"/><path d="M19 9v9"/><path d="M3.5 21h17"/>`,
+    rocket: `<path d="M12 2c2.8 1.6 4.5 4.7 4.5 8.5 0 3-1.2 5.7-3 7.8l-1.5 1.4-1.5-1.4c-1.8-2.1-3-4.8-3-7.8C7.5 6.7 9.2 3.6 12 2z"/><circle cx="12" cy="9.5" r="1.6"/><path d="M8.3 15.5 5.5 18a3 3 0 0 0-.9 2.3v1.2l1.2-.1a3 3 0 0 0 2.1-.9l2-2.1"/><path d="M15.7 15.5 18.5 18a3 3 0 0 1 .9 2.3v1.2l-1.2-.1a3 3 0 0 1-2.1-.9l-2-2.1"/>`,
+    inbox: `<polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>`,
+    quiz_empty: `<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>`
+  };
+  return `<svg ${c}>${p[name] || ""}</svg>`;
+}
+
+/* ============================================================
+   SPEECH SYNTHESIS (TTS)
+   ============================================================ */
+function speakText(text) {
+  if (!('speechSynthesis' in window)) {
+    alert("Speech synthesis is not supported on this device.");
+    return;
+  }
+  window.speechSynthesis.cancel();
+  if (STATE.isSpeaking) {
+    STATE.isSpeaking = false;
+    render();
+    return;
+  }
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.95;
+  utterance.onend = () => { STATE.isSpeaking = false; render(); };
+  utterance.onerror = () => { STATE.isSpeaking = false; render(); };
+  STATE.isSpeaking = true;
+  window.speechSynthesis.speak(utterance);
+  render();
+}
+
+/* ============================================================
+   REAL PROGRESS HELPERS (replace static isCompleted flags)
+   ============================================================ */
+function isTopicDone(topicId) {
+  return STATE.completedTopics.includes(topicId);
+}
+function chapterProgress(chapter) {
+  const total = chapter.topics.length;
+  const done = chapter.topics.filter(t => isTopicDone(t.id)).length;
+  return { done, total, complete: total > 0 && done === total };
+}
+function toggleTopicComplete(topicId) {
+  const idx = STATE.completedTopics.indexOf(topicId);
+  if (idx === -1) STATE.completedTopics.push(topicId);
+  else STATE.completedTopics.splice(idx, 1);
+  persistUser({ completedTopics: STATE.completedTopics });
+}
+function saveLastRead(subjectId, subSectionId, chapterId, topicIndex) {
+  STATE.lastRead = { subjectId, subSectionId, chapterId, topicIndex };
+  persistUser({ lastRead: STATE.lastRead });
+}
+
+/* ============================================================
+   ONBOARDING MODAL — first-launch name capture (replaces
+   the old hardcoded "Hello, Aarav")
+   ============================================================ */
+function renderOnboardingModal() {
+  return `
+    <div class="sheet-backdrop">
+      <div class="sheet">
+        <div style="text-align:center;margin-bottom:8px;">
+          <div style="width:56px;height:56px;margin:0 auto 14px;border-radius:18px;background:var(--banner-grad);display:flex;align-items:center;justify-content:center;">
+            ${svgIcon("sparkles", "#fff", 26)}
+          </div>
+          <h2 style="font-family:'Fraunces',serif;font-weight:800;font-size:21px;margin:0 0 6px;">${STATE.userName ? "Edit Name" : "Welcome!"}</h2>
+          <p style="font-size:13.5px;color:var(--text-soft);margin:0 0 20px;font-weight:500;">What should we call you?</p>
+        </div>
+        <label for="onboarding-name-input" class="visually-hidden">Your name</label>
+        <input type="text" id="onboarding-name-input" placeholder="Enter your name"
+          style="width:100%;min-height:48px;padding:13px 16px;border-radius:14px;border:1.5px solid var(--border);font-size:15px;background:var(--bg-60);color:var(--text-main);margin-bottom:14px;"
+          value="${STATE.onboardingNameDraft}" maxlength="40" />
+        <button data-action="save-onboarding-name" class="animated-btn" style="width:100%;min-height:48px;border-radius:14px;background:var(--accent-10);color:#fff;font-weight:700;font-size:15px;">
+          Continue
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   MAIN RENDER ENGINE
+   ============================================================ */
+function render() {
+  document.body.className = STATE.isDark ? "dark" : "";
+  const root = document.getElementById("app");
+
+  if (!STATE.userLoaded) {
+    root.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--text-soft);font-size:13.5px;font-weight:600;">Loading your progress…</div>`;
+    return;
+  }
+
+  let bodyContent = "";
+  if (STATE.flow === "chapters") bodyContent = renderChaptersView();
+  else if (STATE.flow === "topicReader") bodyContent = renderTopicReaderView();
+  else if (STATE.flow === "quiz") bodyContent = renderQuizView();
+  else if (STATE.tab === "home") bodyContent = renderHomeView();
+  else if (STATE.tab === "library") bodyContent = renderLibraryView();
+  else if (STATE.tab === "progress") bodyContent = renderProgressView();
+  else if (STATE.tab === "settings") bodyContent = renderSettingsView();
+
+  root.innerHTML = `
+    <div class="scroll-container view-enter">${bodyContent}</div>
+    ${STATE.flow ? "" : renderBottomNav()}
+    ${STATE.aiModalOpen ? renderAIModal() : ""}
+    ${STATE.onboardingOpen ? renderOnboardingModal() : ""}
+  `;
+
+  attachEventListeners();
+  wireSearchInput();
+}
+
+/* ============================================================
+   1. HOME VIEW
+   ============================================================ */
+function renderHomeView() {
+  const totalCh = APP_DATA.reduce((acc, s) => acc + s.chapters.length, 0);
+  const completedCh = APP_DATA.reduce((acc, s) => acc + s.chapters.filter(c => chapterProgress(c).complete).length, 0);
+  const overallPct = totalCh ? Math.round((completedCh / totalCh) * 100) : 0;
+  const displayName = STATE.userName || "Student";
+  const initial = displayName.charAt(0).toUpperCase();
+
+  // Resolve what "Continue Learning" should actually resume.
+  let continueLabel = "Continue Learning";
+  if (STATE.lastRead) {
+    const s = APP_DATA.find(s => s.id === STATE.lastRead.subjectId);
+    const c = s ? s.chapters.find(c => c.id === STATE.lastRead.chapterId) : null;
+    if (c) continueLabel = `Resume "${c.title}"`;
+  }
+
+  const subjectChips = APP_DATA.map(s => `
+    <button class="subject-chip animated-btn" data-action="select-subject" data-id="${s.id}">
+      <span style="color:var(--text-soft);display:flex;align-items:center;">${svgIcon(s.id, "var(--text-soft)", 18)}</span>
+      ${s.name}
+    </button>
+  `).join("");
+
+  return `
+    <div style="padding:20px 20px 10px;">
+      <!-- Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="width:46px;height:46px;border-radius:16px;background:var(--banner-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;box-shadow:0 6px 16px rgba(0,0,0,0.1);">${initial}</div>
+          <div>
+            <p style="margin:0;font-size:12px;color:var(--text-soft);font-weight:600;letter-spacing:0.02em;">CLASS 10 BOARD REVISION</p>
+            <p style="margin:2px 0 0;font-family:'Fraunces',serif;font-weight:800;font-size:20px;">Hello, ${displayName}</p>
+          </div>
+        </div>
+        <button data-action="open-ai" class="animated-btn" style="min-height:44px;padding:10px 14px;border-radius:16px;background:#3A63ED;color:#fff;display:flex;align-items:center;gap:6px;font-weight:700;font-size:12.5px;box-shadow:0 6px 18px rgba(58,99,237,0.35);">
+          ${svgIcon("sparkles", "#fff", 16)} AI Assistant
+        </button>
+      </div>
+
+      <!-- Hero Card -->
+      <div class="banner-card" style="margin-top:20px;">
+        <div class="paper-grain"></div>
+        <div class="banner-decor banner-decor-1"></div>
+        <div class="banner-decor banner-decor-2"></div>
+        <div style="position:relative;z-index:2;">
+          <span class="badge" style="background:rgba(255,255,255,0.2);color:#fff;">
+            ${svgIcon("flame", "#fff", 14)} ${STATE.currentStreak}-Day Study Streak
+          </span>
+          <h2 style="font-family:'Fraunces',serif;font-weight:800;font-size:23px;margin:12px 0 8px;line-height:1.4;">
+            Master Class 10 <span class="marker-heading marker-heading--brand" style="color:#1E293B;">Notes & Quizzes</span>
+          </h2>
+          <p style="font-size:13px;opacity:0.92;margin:0 0 18px;font-weight:500;">
+            ${completedCh} of ${totalCh} chapters completed (${overallPct}% mastery)
+          </p>
+          <button class="banner-cta animated-btn" data-action="continue-study" style="min-height:44px;">
+            ${continueLabel} ${svgIcon("right", "#3A63ED", 16)}
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid2" style="margin-top:16px;">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--accent-soft);color:var(--accent-10);">${svgIcon("book", "var(--accent-10)", 18)}</div>
+          <p class="stat-num">${totalCh}</p>
+          <p class="stat-label">Total Chapters</p>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:var(--accent-soft);color:var(--accent-10);">${svgIcon("target", "var(--accent-10)", 18)}</div>
+          <p class="stat-num">${overallPct}%</p>
+          <p class="stat-label">Mastery Level</p>
+        </div>
+      </div>
+
+      <!-- Overall Progress (circular mastery ring) -->
+      <div class="card" style="margin-top:16px;display:flex;align-items:center;gap:20px;">
+        <div class="ring-wrap">
+          <svg width="96" height="96" viewBox="0 0 96 96">
+            <circle class="ring-track" cx="48" cy="48" r="40"></circle>
+            <circle class="ring-fill" cx="48" cy="48" r="40"
+              stroke-dasharray="${2 * Math.PI * 40}"
+              stroke-dashoffset="${2 * Math.PI * 40 * (1 - overallPct / 100)}"></circle>
+          </svg>
+          <div class="ring-center">
+            <span style="font-family:'Fraunces',serif;font-weight:800;font-size:19px;color:var(--text-main);">${overallPct}%</span>
+          </div>
+        </div>
+        <div>
+          <span style="font-weight:700;font-size:14px;display:block;margin-bottom:4px;">Overall Syllabus Progress</span>
+          <span style="font-size:12.5px;color:var(--text-soft);font-weight:500;">${completedCh} of ${totalCh} chapters mastered. Keep the streak going!</span>
+        </div>
+      </div>
+
+      <!-- Quick Subjects -->
+      <p class="marker-heading" style="font-family:'Fraunces',serif;font-weight:700;font-size:18px;margin:24px 0 12px;display:inline-block;">Explore Subjects</p>
+      <div class="chip-row">${subjectChips}</div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   2. LIBRARY / COURSES VIEW
+   ============================================================ */
+function renderLibraryView() {
+  const bentoItems = [
+    { label: "Mathematics", icon: "math", color: "#E4643A", blob: "rgba(63,174,134,0.55)", subjectId: "math", subSectionId: null },
+    { label: "English", icon: "english", color: "#4C63B6", blob: "rgba(242,163,64,0.55)", subjectId: "english", subSectionId: null },
+    { label: "Chemistry", icon: "chemistry", color: "#F2A340", blob: "rgba(76,99,182,0.5)", subjectId: "science", subSectionId: "chem" },
+    { label: "Biology", icon: "biology", color: "#3FAE86", blob: "rgba(242,163,64,0.55)", subjectId: "science", subSectionId: "bio" },
+    { label: "Physics", icon: "physics", color: "#7B85E0", blob: "rgba(228,100,58,0.55)", subjectId: "science", subSectionId: "phy" },
+    { label: "Social Studies", icon: "geography", color: "#242833", blob: "rgba(63,174,134,0.55)", subjectId: "sst", subSectionId: null }
+  ];
+
+  const cards = bentoItems.map(item => `
+    <div class="bento-card animated-btn" data-action="select-subject" data-id="${item.subjectId}" data-sub="${item.subSectionId || ''}" style="background:${item.color};cursor:pointer;box-shadow:0 14px 30px -10px ${item.color}66;">
+      <div class="bento-blob" style="width:70px;height:70px;top:-24px;right:-24px;background:${item.blob};"></div>
+      <div class="bento-blob" style="width:44px;height:44px;bottom:-16px;left:-14px;background:${item.blob};"></div>
+      <div class="bento-icon-wrap">${svgIcon(item.icon, "#FFFFFF", 26)}</div>
+      <p class="bento-label">${item.label}</p>
+    </div>
+  `).join("");
+
+  return `
+    <div style="padding:20px 20px 10px;">
+      <div class="banner-card" style="background:linear-gradient(135deg, #E9884A 0%, #EFA95C 100%);min-height:120px;margin-bottom:22px;box-shadow:0 16px 36px -12px rgba(233,136,74,0.4);">
+        <div class="banner-decor banner-decor-1"></div>
+        <div style="position:relative;z-index:2;">
+          <h2 style="font-family:'Fraunces',serif;font-weight:800;font-size:24px;margin:0 0 10px;">Curriculum Library</h2>
+          <div style="display:flex;gap:8px;">
+            <span class="badge" style="background:rgba(255,255,255,0.25);color:#fff;">
+              ${svgIcon("book", "#fff", 14)} ${APP_DATA.length} Major Subjects
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <p style="font-family:'Fraunces',serif;font-weight:700;font-size:18px;margin:0 0 14px;">Select Subject</p>
+      <div class="bento-grid">${cards}</div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   3. CHAPTERS LIST VIEW (With Sub-sections filter)
+   ============================================================ */
+function renderChaptersView() {
+  const subject = APP_DATA.find(s => s.id === STATE.subjectId);
+  if (!subject) {
+    return `
+      <div class="topbar">
+        <button data-action="close-flow" class="animated-btn" style="display:flex;align-items:center;gap:4px;font-weight:700;font-size:14px;min-height:44px;">
+          ${svgIcon("left", "var(--text-main)", 20)} Back
+        </button>
+        <span style="font-family:'Fraunces',serif;font-weight:700;font-size:18px;">Subject</span>
+        <div style="width:40px;"></div>
+      </div>
+      <div class="empty-state">
+        <div class="empty-icon-wrap">${svgIcon("inbox", "var(--accent-10)", 32)}</div>
+        <p class="empty-title">Subject not found</p>
+        <p class="empty-sub">This subject may have been removed or renamed. Head back and pick another one to continue revising.</p>
+        <button data-action="go-tab" data-id="library" class="animated-btn empty-cta">Browse Subjects</button>
+      </div>
+    `;
+  }
+
+  let subSectionFilterHtml = "";
+  if (subject.subSections && subject.subSections.length > 0) {
+    const allActive = STATE.subSectionId === null;
+    const subButtons = subject.subSections.map(sub => {
+      const active = STATE.subSectionId === sub.id;
+      return `
+        <button class="subject-chip animated-btn" data-action="filter-subsection" data-id="${sub.id}"
+          style="background:${active ? 'var(--accent-10)' : 'var(--surface-30)'};color:${active ? '#FFFFFF' : 'var(--text-main)'};border-color:${active ? 'var(--accent-10)' : 'var(--border)'};">
+          ${svgIcon(sub.id === "chem" ? "chemistry" : sub.id === "phy" ? "physics" : sub.id === "bio" ? "biology" : sub.id === "hist" ? "history" : sub.id === "geo" ? "geography" : sub.id === "pol" ? "civics" : "book", active ? '#FFFFFF' : 'var(--text-soft)', 16)}
+          ${sub.title}
+        </button>
+      `;
+    }).join("");
+
+    subSectionFilterHtml = `
+      <div class="chip-row" style="margin-bottom:18px;">
+        <button class="subject-chip animated-btn" data-action="filter-subsection" data-id="ALL"
+          style="background:${allActive ? 'var(--accent-10)' : 'var(--surface-30)'};color:${allActive ? '#FFFFFF' : 'var(--text-main)'};border-color:${allActive ? 'var(--accent-10)' : 'var(--border)'};">
+          All Streams
+        </button>
+        ${subButtons}
+      </div>
+    `;
+  }
+
+  const q = STATE.chapterSearch.trim().toLowerCase();
+  const filteredChapters = subject.chapters.filter(ch => {
+    if (STATE.subSectionId && ch.subSectionId !== STATE.subSectionId) return false;
+    if (q && !ch.title.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  const searchBarHtml = `
+    <div style="position:relative;margin-bottom:16px;">
+      <label for="chapter-search-input" class="visually-hidden">Search chapters</label>
+      <input type="text" id="chapter-search-input" placeholder="Search chapters..."
+        style="width:100%;min-height:44px;padding:12px 40px 12px 16px;border-radius:14px;border:1.5px solid var(--border);font-size:14px;background:var(--surface-30);color:var(--text-main);"
+        value="${STATE.chapterSearch.replace(/"/g, '&quot;')}" />
+      ${STATE.chapterSearch ? `
+        <button data-action="clear-chapter-search" class="animated-btn" aria-label="Clear search" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);min-width:32px;min-height:32px;display:flex;align-items:center;justify-content:center;">
+          ${svgIcon("x", "var(--text-soft)", 16)}
+        </button>
+      ` : ""}
+    </div>
+  `;
+
+  const chapterList = filteredChapters.map((ch, idx) => {
+    const prog = chapterProgress(ch);
+    const badgeHtml = prog.complete
+      ? `<span class="badge" style="background:var(--accent-soft);color:var(--accent-10);display:inline-flex;align-items:center;gap:4px;">${svgIcon("check", "var(--accent-10)", 12)} Completed</span>`
+      : prog.done > 0
+        ? `<span class="badge" style="background:var(--bg-60);color:var(--text-soft);">${prog.done}/${prog.total} topics done</span>`
+        : "";
+    return `
+    <div class="card chapter-card" style="margin-bottom:14px;padding:18px;margin-top:9px;">
+      <div class="chapter-tab">CH ${idx + 1}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        ${badgeHtml}
+        <span style="font-size:12px;color:var(--text-soft);display:flex;align-items:center;gap:4px;font-weight:600;margin-left:auto;">
+          ${svgIcon("clock", "var(--text-soft)", 13)} ${ch.studyTime}
+        </span>
+      </div>
+      <h3 style="font-family:'Fraunces',serif;font-size:17px;margin:0 0 10px;line-height:1.35;">${ch.title}</h3>
+      <p style="font-size:12.5px;color:var(--text-soft);margin:0 0 16px;font-weight:500;">${ch.topics.length} Detailed Topics • ${ch.quiz ? ch.quiz.length : 0} Practice Questions</p>
+      
+      <div style="display:flex;gap:10px;">
+        <button data-action="open-topic" data-id="${ch.id}" class="animated-btn" style="flex:1;min-height:44px;padding:11px;border-radius:14px;background:var(--accent-10);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;gap:6px;box-shadow:0 4px 14px rgba(0,0,0,0.1);">
+          ${svgIcon("book", "#fff", 15)} Read Notes
+        </button>
+        ${ch.quiz && ch.quiz.length > 0 ? `
+          <button data-action="open-quiz" data-id="${ch.id}" class="animated-btn" style="min-height:44px;padding:11px 16px;border-radius:14px;background:var(--accent-soft);color:var(--accent-10);font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px;">
+            ${svgIcon("check", "var(--accent-10)", 15)} Quiz
+          </button>
+        ` : ""}
+      </div>
+    </div>
+  `;
+  }).join("");
+
+  const emptyChaptersHtml = q ? `
+    <div class="empty-state">
+      <div class="empty-icon-wrap">${svgIcon("quiz_empty", "var(--accent-10)", 32)}</div>
+      <p class="empty-title">No chapters match "${STATE.chapterSearch}"</p>
+      <p class="empty-sub">Try a different keyword, or clear the search to see everything.</p>
+      <button data-action="clear-chapter-search" class="animated-btn empty-cta">Clear Search</button>
+    </div>
+  ` : `
+    <div class="empty-state">
+      <div class="empty-icon-wrap">${svgIcon("inbox", "var(--accent-10)", 32)}</div>
+      <p class="empty-title">No chapters here yet</p>
+      <p class="empty-sub">This section doesn't have any chapters added yet. Try a different stream or check back after the next update.</p>
+      <button data-action="filter-subsection" data-id="ALL" class="animated-btn empty-cta">Show All Streams</button>
+    </div>
+  `;
+
+  return `
+    <div class="topbar">
+      <button data-action="close-flow" class="animated-btn" style="display:flex;align-items:center;gap:4px;font-weight:700;font-size:14px;min-height:44px;">
+        ${svgIcon("left", "var(--text-main)", 20)} Back
+      </button>
+      <span style="font-family:'Fraunces',serif;font-weight:700;font-size:18px;">${subject.name}</span>
+      <div style="width:40px;"></div>
+    </div>
+
+    <div style="padding:18px;">
+      ${subSectionFilterHtml}
+      ${searchBarHtml}
+      ${filteredChapters.length ? chapterList : emptyChaptersHtml}
+    </div>
+  `;
+}
+
+/* ============================================================
+   4. TOPIC READER VIEW (Detailed Notes + Points + Photos)
+   ============================================================ */
+function renderTopicReaderView() {
+  const subject = APP_DATA.find(s => s.id === STATE.subjectId);
+  const chapter = subject ? subject.chapters.find(c => c.id === STATE.chapterId) : null;
+  if (!chapter || !chapter.topics.length) {
+    return `
+      <div class="topbar">
+        <button data-action="back-to-chapters" class="animated-btn" style="display:flex;align-items:center;gap:4px;font-weight:700;font-size:14px;min-height:44px;">
+          ${svgIcon("left", "var(--text-main)", 20)} Chapters
+        </button>
+        <span style="font-family:'Fraunces',serif;font-weight:700;font-size:16px;">Notes</span>
+        <div style="width:40px;"></div>
+      </div>
+      <div class="empty-state">
+        <div class="empty-icon-wrap">${svgIcon("book", "var(--accent-10)", 32)}</div>
+        <p class="empty-title">No notes in this chapter yet</p>
+        <p class="empty-sub">Content for this chapter is still being prepared. Check another chapter in the meantime.</p>
+        <button data-action="back-to-chapters" class="animated-btn empty-cta">Back to Chapters</button>
+      </div>
+    `;
+  }
+
+  const topic = chapter.topics[STATE.activeTopicIndex] || chapter.topics[0];
+  const fullTextToRead = `${topic.title}. ${topic.bulletPoints.join(". ")}. Summary: ${topic.summary}`;
+
+  const bullets = topic.bulletPoints.map(pt => `
+    <li class="note-text" style="margin-bottom:12px;font-size:14.5px;line-height:1.65;color:#1A2332;">${pt}</li>
+  `).join("");
+
+  return `
+    <div class="topbar">
+      <button data-action="back-to-chapters" class="animated-btn" style="display:flex;align-items:center;gap:4px;font-weight:700;font-size:14px;min-height:44px;">
+        ${svgIcon("left", "var(--text-main)", 20)} Chapters
+      </button>
+      <span style="font-family:'Fraunces',serif;font-weight:700;font-size:16px;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${chapter.title}</span>
+      <button data-action="speak-topic" data-text="${encodeURIComponent(fullTextToRead)}" class="animated-btn" style="min-height:44px;padding:8px 12px;border-radius:12px;background:${STATE.isSpeaking ? '#E0522F' : 'var(--accent-10)'};color:#fff;display:flex;align-items:center;gap:6px;font-weight:700;font-size:12px;">
+        ${svgIcon("volume", "#fff", 16)} ${STATE.isSpeaking ? 'Stop' : 'Read'}
+      </button>
+    </div>
+
+    <div style="padding:18px;">
+      <!-- Topic Tabs -->
+      <div class="chip-row" style="margin-bottom:18px;">
+        ${chapter.topics.map((t, idx) => `
+          <button class="subject-chip animated-btn" data-action="switch-topic-tab" data-index="${idx}"
+            style="background:${idx === STATE.activeTopicIndex ? 'var(--accent-10)' : 'var(--surface-30)'};color:${idx === STATE.activeTopicIndex ? '#FFFFFF' : 'var(--text-main)'};border-color:${idx === STATE.activeTopicIndex ? 'var(--accent-10)' : 'var(--border)'};">
+            Topic ${idx + 1}
+          </button>
+        `).join("")}
+      </div>
+
+      <!-- Main Topic Content -->
+      <div class="card">
+        <h2 style="font-family:'Fraunces',serif;font-size:20px;margin:0 0 16px;color:var(--accent-10);line-height:1.35;">${topic.title}</h2>
+        
+        ${topic.imageUrl ? `
+          <div style="width:100%;height:190px;border-radius:18px;overflow:hidden;margin-bottom:18px;background:var(--bg-60);">
+            <img src="${topic.imageUrl}" alt="Visual reference for ${topic.title.replace(/^\d+\.\s*/, '')}" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'" />
+          </div>
+        ` : ""}
+
+        <p style="font-weight:700;font-size:13px;margin:0 0 12px;color:var(--text-soft);letter-spacing:0.04em;">KEY CONCEPTS & ANALYSIS:</p>
+        <ul style="padding-left:18px;margin:0 0 20px;">
+          ${bullets}
+        </ul>
+
+        <div style="padding:16px;border-radius:16px;background:var(--accent-soft);border-left:4px solid var(--accent-10);">
+          <p style="font-weight:700;font-size:13px;margin:0 0 4px;color:var(--accent-deep);">Summary Takeaway</p>
+          <p class="note-text" style="font-size:13.5px;margin:0;line-height:1.55;color:var(--text-main);">${topic.summary}</p>
+        </div>
+
+        <button data-action="toggle-topic-complete" data-id="${topic.id}" class="animated-btn" style="width:100%;margin-top:16px;min-height:44px;padding:12px;border-radius:14px;background:${isTopicDone(topic.id) ? 'var(--accent-10)' : 'var(--bg-60)'};color:${isTopicDone(topic.id) ? '#fff' : 'var(--text-main)'};font-weight:700;font-size:13.5px;display:flex;align-items:center;justify-content:center;gap:8px;border:1.5px solid ${isTopicDone(topic.id) ? 'var(--accent-10)' : 'var(--border)'};">
+          ${svgIcon("check", isTopicDone(topic.id) ? '#fff' : 'var(--text-soft)', 16)}
+          ${isTopicDone(topic.id) ? "Marked as Complete" : "Mark Topic as Complete"}
+        </button>
+      </div>
+
+      <!-- Navigation buttons -->
+      <div style="display:flex;gap:12px;margin-top:18px;">
+        ${STATE.activeTopicIndex > 0 ? `
+          <button data-action="prev-topic" class="animated-btn" style="flex:1;min-height:44px;padding:12px;border-radius:16px;background:#FFFFFF;border:1px solid #E1ECF7;font-weight:700;font-size:14px;color:#1A2332;">
+            ← Previous Topic
+          </button>
+        ` : ""}
+        ${STATE.activeTopicIndex < chapter.topics.length - 1 ? `
+          <button data-action="next-topic" class="animated-btn" style="flex:1;min-height:44px;padding:12px;border-radius:16px;background:var(--accent-10);color:#fff;font-weight:700;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,0.1);">
+            Next Topic →
+          </button>
+        ` : `
+          ${chapter.quiz && chapter.quiz.length > 0 ? `
+            <button data-action="open-quiz" data-id="${chapter.id}" class="animated-btn" style="flex:1;min-height:44px;padding:12px;border-radius:16px;background:var(--accent-10);color:#fff;font-weight:700;font-size:14px;box-shadow:0 6px 18px rgba(0,0,0,0.1);">
+              Take Chapter Quiz
+            </button>
+          ` : ""}
+        `}
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   5. INTERACTIVE QUIZ VIEW
+   ============================================================ */
+function renderQuizView() {
+  const subject = APP_DATA.find(s => s.id === STATE.subjectId);
+  const chapter = subject ? subject.chapters.find(c => c.id === STATE.chapterId) : null;
+  if (!chapter || !chapter.quiz || !chapter.quiz.length) {
+    return `
+      <div class="topbar">
+        <button data-action="back-to-chapters" class="animated-btn" style="display:flex;align-items:center;gap:4px;font-weight:700;font-size:14px;min-height:44px;">
+          ${svgIcon("left", "var(--text-main)", 20)} Exit Quiz
+        </button>
+        <span style="font-family:'Fraunces',serif;font-weight:700;font-size:18px;">Chapter Quiz</span>
+        <div style="width:40px;"></div>
+      </div>
+      <div class="empty-state">
+        <div class="empty-icon-wrap">${svgIcon("quiz_empty", "var(--accent-10)", 32)}</div>
+        <p class="empty-title">No quiz available</p>
+        <p class="empty-sub">This chapter doesn't have practice questions yet. Read the notes for now — quiz questions are on the way.</p>
+        <button data-action="back-to-chapters" class="animated-btn empty-cta">Back to Chapters</button>
+      </div>
+    `;
+  }
+
+  let score = 0;
+  if (STATE.quizSubmitted) {
+    chapter.quiz.forEach((q, idx) => {
+      if (STATE.quizAnswers[idx] === q.correct) score++;
+    });
+  }
+
+  const questionsHtml = chapter.quiz.map((q, idx) => {
+    const selected = STATE.quizAnswers[idx];
+
+    return `
+      <div class="card" style="margin-bottom:16px;">
+        <p style="font-weight:700;font-size:15px;margin:0 0 14px;line-height:1.45;">Q${idx + 1}. ${q.q}</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          ${q.options.map((opt, oIdx) => {
+            let bg = "#FFFFFF";
+            let border = "#E1ECF7";
+            let color = "#1A2332";
+
+            if (selected === oIdx) {
+              bg = "#EBF3FE"; border = "#3A63ED"; color = "#1D5FC4";
+            }
+            if (STATE.quizSubmitted) {
+              if (oIdx === q.correct) {
+                bg = "#E1F5EC"; border = "#2E9E72"; color = "#173328";
+              } else if (selected === oIdx && oIdx !== q.correct) {
+                bg = "#FDEAE0"; border = "#E0763F"; color = "#3A2416";
+              }
+            }
+
+            return `
+              <button data-action="select-quiz-option" data-qidx="${idx}" data-oidx="${oIdx}" class="animated-btn"
+                style="min-height:44px;padding:13px 16px;border-radius:14px;background:${bg};border:1.5px solid ${border};color:${color};text-align:left;font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:space-between;">
+                <span>${String.fromCharCode(65 + oIdx)}. ${opt}</span>
+                ${STATE.quizSubmitted && oIdx === q.correct ? svgIcon("check", "#2E9E72", 18) : ""}
+              </button>
+            `;
+          }).join("")}
+        </div>
+
+        ${STATE.quizSubmitted ? `
+          <div style="margin-top:14px;padding:12px;border-radius:12px;background:#F8FAFC;font-size:13px;color:#64748B;line-height:1.5;">
+            <strong style="color:#1A2332;">Explanation:</strong> ${q.exp}
+          </div>
+        ` : ""}
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <div class="topbar">
+      <button data-action="back-to-chapters" class="animated-btn" style="display:flex;align-items:center;gap:4px;font-weight:700;font-size:14px;min-height:44px;">
+        ${svgIcon("left", "#1A2332", 20)} Exit Quiz
+      </button>
+      <span style="font-family:'Fraunces',serif;font-weight:700;font-size:18px;">Chapter Quiz</span>
+      <div style="width:40px;"></div>
+    </div>
+
+    <div style="padding:18px;">
+      ${STATE.quizSubmitted ? `
+        <div class="card" style="margin-bottom:18px;background:linear-gradient(135deg,#3A63ED,#1D5FC4);color:#fff;text-align:center;padding:26px;box-shadow:0 12px 30px rgba(58,99,237,0.35);">
+          <h2 style="font-family:'Fraunces',serif;font-size:28px;margin:0 0 6px;">Score: ${score} / ${chapter.quiz.length}</h2>
+          <p style="margin:0;font-size:14px;opacity:0.95;font-weight:500;">
+            ${score === chapter.quiz.length ? "Perfect score! You mastered this chapter!" : "Great effort! Review the notes to strengthen key concepts."}
+          </p>
+        </div>
+      ` : ""}
+
+      ${questionsHtml}
+
+      <div style="margin-top:22px;">
+        ${!STATE.quizSubmitted ? `
+          <button data-action="submit-quiz" class="animated-btn" style="width:100%;min-height:44px;padding:15px;border-radius:18px;background:#3A63ED;color:#fff;font-weight:700;font-size:15px;box-shadow:0 8px 24px rgba(58,99,237,0.35);">
+            Submit Quiz
+          </button>
+        ` : `
+          <button data-action="retry-quiz" class="animated-btn" style="width:100%;min-height:44px;padding:15px;border-radius:18px;background:#111827;color:#fff;font-weight:700;font-size:15px;">
+            Retry Quiz
+          </button>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   6. PROGRESS VIEW
+   ============================================================ */
+function renderProgressView() {
+  const weekly = [
+    { day: "Mon", min: 45 },
+    { day: "Tue", min: 30 },
+    { day: "Wed", min: 75 },
+    { day: "Thu", min: 50 },
+    { day: "Fri", min: 60 },
+    { day: "Sat", min: 90 },
+    { day: "Sun", min: 40 }
+  ];
+  const maxMin = Math.max(...weekly.map(w => w.min));
+
+  const bars = weekly.map(w => {
+    const h = Math.round((w.min / maxMin) * 100);
+    return `
+      <div class="bar-col">
+        <span class="bar-value">${w.min}m</span>
+        <div class="bar-fill" style="height:${h}px;background:${w.min === maxMin ? 'linear-gradient(180deg,#3A63ED,#1D5FC4)' : '#EBF3FE'};"></div>
+        <span class="bar-day">${w.day}</span>
+      </div>
+    `;
+  }).join("");
+
+  return `
+    <div style="padding:20px 20px 10px;">
+      <h2 style="font-family:'Fraunces',serif;font-size:23px;margin:0 0 18px;">Study Analytics</h2>
+
+      <div class="card" style="margin-bottom:18px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-weight:700;font-size:15px;">Weekly Revision Time</span>
+          <span style="font-size:12px;color:#64748B;font-weight:600;">Minutes / Day</span>
+        </div>
+        <div class="bar-chart">${bars}</div>
+      </div>
+
+      <div class="card">
+        <h3 style="font-family:'Fraunces',serif;font-size:18px;margin:0 0 14px;">Subject Completion Breakdown</h3>
+        ${APP_DATA.map(s => `
+          <div style="margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;font-size:13.5px;margin-bottom:6px;font-weight:600;">
+              <span>${s.name}</span>
+              <span style="color:#3A63ED;font-family:'JetBrains Mono',monospace;">${s.studyTime}</span>
+            </div>
+            <div class="prog-track" style="height:7px;">
+              <div style="width:70%;height:100%;background:#3A63ED;border-radius:999px;"></div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   7. SETTINGS VIEW
+   ============================================================ */
+function renderSettingsView() {
+  const themeItems = Object.keys(THEMES).map(id => `
+    <div class="animated-btn" data-action="change-theme" data-id="${id}" 
+      style="cursor:pointer;flex:1;min-width:80px;padding:12px;border-radius:16px;background:${STATE.themeId === id ? 'var(--accent-soft)' : 'var(--bg-60)'};border:2px solid ${STATE.themeId === id ? 'var(--accent-10)' : 'transparent'};transition:all 0.2s ease;display:flex;flex-direction:column;align-items:center;gap:8px;">
+      <div style="width:32px;height:32px;border-radius:50%;background:${THEMES[id].accent};box-shadow:0 4px 10px rgba(0,0,0,0.1);"></div>
+      <span style="font-size:12px;font-weight:700;text-transform:capitalize;color:${STATE.themeId === id ? 'var(--accent-10)' : 'var(--text-soft)'}">${id}</span>
+    </div>
+  `).join("");
+
+  return `
+    <div style="padding:24px;">
+      <h2 style="font-family:'Fraunces',serif;font-size:28px;margin:0 0 24px;">Settings</h2>
+
+      <!-- Profile Section -->
+      <div class="card" style="margin-bottom:24px;display:flex;align-items:center;gap:20px;padding:24px;">
+        <div style="width:70px;height:70px;border-radius:24px;background:var(--banner-grad);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:28px;font-family:'Fraunces',serif;box-shadow:0 10px 25px rgba(0,0,0,0.15);">${(STATE.userName || "S").charAt(0).toUpperCase()}</div>
+        <div style="flex:1;">
+          <p style="margin:0;font-family:'Fraunces',serif;font-weight:700;font-size:20px;">${STATE.userName || "Student"}</p>
+          <p style="margin:4px 0 0;font-size:14px;color:var(--text-soft);font-weight:600;">Class 10 Board Candidate • ${STATE.currentStreak}-day streak (best: ${STATE.longestStreak})</p>
+        </div>
+        <button data-action="open-edit-name" class="animated-btn" aria-label="Edit name" style="min-width:44px;min-height:44px;padding:10px;border-radius:12px;background:var(--bg-60);display:flex;align-items:center;justify-content:center;">
+          ${svgIcon("gear", "var(--text-soft)", 18)}
+        </button>
+      </div>
+
+      <!-- Theme & Appearance -->
+      <div class="card" style="margin-bottom:24px;padding:24px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;">
+           <div>
+             <p style="margin:0;font-weight:700;font-size:17px;">Dark Mode</p>
+             <p style="margin:2px 0 0;font-size:12.5px;color:var(--text-soft);">Optimized for night study</p>
+           </div>
+           <button data-action="toggle-dark" class="animated-btn" role="switch" aria-checked="${STATE.isDark}" aria-label="Toggle dark mode" style="width:56px;height:28px;border-radius:20px;background:${STATE.isDark ? 'var(--accent-10)' : 'var(--border)'};position:relative;transition:all 0.3s ease;border:none;">
+             <div style="width:20px;height:20px;border-radius:50%;background:#fff;position:absolute;top:4px;${STATE.isDark ? 'right:4px' : 'left:4px'};transition:all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);"></div>
+           </button>
+        </div>
+        
+        <p style="margin:0 0 16px;font-weight:700;font-size:16px;">Color Palette</p>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;">
+          ${themeItems}
+        </div>
+      </div>
+
+      <!-- App Info -->
+      <div class="card" style="padding:24px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div style="color:var(--accent-10);">${svgIcon("sparkles", "var(--accent-10)", 20)}</div>
+          <h4 style="font-family:'Fraunces',serif;margin:0;font-size:18px;">About Application</h4>
+        </div>
+        <p style="font-size:14px;color:var(--text-soft);margin:0;line-height:1.7;font-weight:500;">
+          Class 10 Notes is a high-performance revision suite. Manage curriculum data via 
+          <span style="font-family:'JetBrains Mono';color:var(--accent-10);font-weight:700;background:var(--accent-soft);padding:2px 6px;border-radius:6px;">admin.html</span>.
+        </p>
+        <p style="margin:16px 0 0;font-size:12px;color:var(--text-soft);text-align:center;font-weight:600;opacity:0.6;">Version 2.4.0 • Build Stable</p>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   8. AI TUTOR MODAL
+   ============================================================ */
+function renderAIModal() {
+  return `
+    <div class="sheet-backdrop">
+      <div class="sheet">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:36px;height:36px;border-radius:12px;background:var(--accent-10);color:#fff;display:flex;align-items:center;justify-content:center;">
+              ${svgIcon("sparkles", "#fff", 18)}
+            </div>
+            <span style="font-family:'Fraunces',serif;font-weight:800;font-size:19px;">AI Tutor</span>
+          </div>
+          <button data-action="close-ai" class="animated-btn" aria-label="Close AI Tutor" style="padding:10px;min-width:44px;min-height:44px;">
+            ${svgIcon("x", "var(--text-soft)", 20)}
+          </button>
+        </div>
+
+        <div style="text-align:center;padding:28px 12px;">
+          <div style="width:64px;height:64px;margin:0 auto 16px;border-radius:20px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;">
+            ${svgIcon("sparkles", "var(--accent-10)", 28)}
+          </div>
+          <h3 style="font-family:'Fraunces',serif;font-weight:800;font-size:18px;margin:0 0 8px;">Coming Soon</h3>
+          <p style="font-size:13.5px;color:var(--text-soft);margin:0;line-height:1.6;font-weight:500;">
+            AI Tutor is being built with a real backend so answers are actually reliable for board exams. Until then, we didn't want to show you fake explanations — check the chapter notes and quizzes for now.
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================================================
+   BOTTOM NAVIGATION BAR
+   ============================================================ */
+function renderBottomNav() {
+  const items = [
+    { id: "home", icon: "home", label: "Home" },
+    { id: "library", icon: "library", label: "Courses" },
+    { id: "progress", icon: "chart", label: "Analytics" },
+    { id: "settings", icon: "gear", label: "Settings" }
+  ];
+
+  const btns = items.map(it => {
+    const active = STATE.tab === it.id;
+    return `
+      <button data-action="go-tab" data-id="${it.id}" class="nav-btn animated-btn" aria-label="${it.label}" ${active ? 'aria-current="page"' : ''}>
+        <span class="nav-btn-inner" style="background:${active ? 'var(--accent-10)' : 'transparent'};">
+          ${svgIcon(it.icon, active ? '#FFFFFF' : 'var(--text-soft)', 20)}
+        </span>
+      </button>
+    `;
+  }).join("");
+
+  return `<div class="nav-bar">${btns}</div>`;
+}
+
+/* ============================================================
+   SEARCH INPUT WIRING — live filter as you type, with focus/cursor
+   preserved across the full-DOM re-render (innerHTML re-renders would
+   otherwise steal focus on every keystroke).
+   ============================================================ */
+function wireSearchInput() {
+  const input = document.getElementById("chapter-search-input");
+  if (!input) return;
+  if (STATE._searchHadFocus) {
+    input.focus();
+    const pos = input.value.length;
+    input.setSelectionRange(pos, pos);
+  }
+  input.oninput = (e) => {
+    STATE.chapterSearch = e.target.value;
+    STATE._searchHadFocus = true;
+    render();
+  };
+}
+
+/* ============================================================
+   EVENT HANDLERS
+   ============================================================ */
+function attachEventListeners() {
+  document.getElementById("app").onclick = (e) => {
+    const btn = e.target.closest("[data-action]");
+    if (!btn) return;
+
+    const action = btn.getAttribute("data-action");
+    const id = btn.getAttribute("data-id");
+
+    if (action === "go-tab") {
+      haptic("medium");
+      STATE.tab = id;
+      STATE.flow = null;
+    } else if (action === "toggle-dark") {
+      haptic("light");
+      applyTheme(STATE.themeId, !STATE.isDark);
+      render();
+      return;
+    } else if (action === "change-theme") {
+      haptic("light");
+      applyTheme(id);
+      render();
+      return;
+    } else if (action === "select-subject") {
+      haptic("light");
+      STATE.subjectId = id;
+      const sub = btn.getAttribute("data-sub");
+      STATE.subSectionId = sub ? sub : null;
+      STATE.flow = "chapters";
+    } else if (action === "filter-subsection") {
+      haptic("light");
+      STATE.subSectionId = id === "ALL" ? null : id;
+    } else if (action === "open-topic") {
+      haptic("light");
+      STATE.chapterId = id;
+      STATE.activeTopicIndex = 0;
+      STATE.flow = "topicReader";
+      saveLastRead(STATE.subjectId, STATE.subSectionId, id, 0);
+    } else if (action === "toggle-topic-complete") {
+      haptic("medium");
+      toggleTopicComplete(id);
+    } else if (action === "clear-chapter-search") {
+      haptic("light");
+      STATE.chapterSearch = "";
+      STATE._searchHadFocus = false;
+    } else if (action === "save-onboarding-name") {
+      const input = document.getElementById("onboarding-name-input");
+      const name = input ? input.value.trim() : "";
+      if (!name) { haptic("light"); return; }
+      haptic("medium");
+      STATE.userName = name;
+      STATE.onboardingOpen = false;
+      persistUser({ name });
+    } else if (action === "open-edit-name") {
+      haptic("light");
+      STATE.onboardingNameDraft = STATE.userName || "";
+      STATE.onboardingOpen = true;
+    } else if (action === "open-quiz") {
+      haptic("medium");
+      STATE.chapterId = id;
+      STATE.quizAnswers = {};
+      STATE.quizSubmitted = false;
+      STATE.flow = "quiz";
+    } else if (action === "close-flow") {
+      haptic("light");
+      STATE.flow = null;
+    } else if (action === "back-to-chapters") {
+      haptic("light");
+      STATE.flow = "chapters";
+      if (STATE.isSpeaking) window.speechSynthesis.cancel();
+      STATE.isSpeaking = false;
+    } else if (action === "switch-topic-tab") {
+      haptic("light");
+      const idx = parseInt(btn.getAttribute("data-index"));
+      STATE.activeTopicIndex = idx;
+      saveLastRead(STATE.subjectId, STATE.subSectionId, STATE.chapterId, idx);
+      if (STATE.isSpeaking) window.speechSynthesis.cancel();
+      STATE.isSpeaking = false;
+    } else if (action === "prev-topic") {
+      haptic("light");
+      if (STATE.activeTopicIndex > 0) STATE.activeTopicIndex--;
+      saveLastRead(STATE.subjectId, STATE.subSectionId, STATE.chapterId, STATE.activeTopicIndex);
+    } else if (action === "next-topic") {
+      haptic("light");
+      STATE.activeTopicIndex++;
+      saveLastRead(STATE.subjectId, STATE.subSectionId, STATE.chapterId, STATE.activeTopicIndex);
+    } else if (action === "speak-topic") {
+      haptic("medium");
+      const text = decodeURIComponent(btn.getAttribute("data-text"));
+      speakText(text);
+      return;
+    } else if (action === "select-quiz-option") {
+      if (STATE.quizSubmitted) return;
+      haptic("light");
+      const qIdx = parseInt(btn.getAttribute("data-qidx"));
+      const oIdx = parseInt(btn.getAttribute("data-oidx"));
+      STATE.quizAnswers[qIdx] = oIdx;
+    } else if (action === "submit-quiz") {
+      haptic("heavy");
+      STATE.quizSubmitted = true;
+      const subj = APP_DATA.find(s => s.id === STATE.subjectId);
+      const chap = subj ? subj.chapters.find(c => c.id === STATE.chapterId) : null;
+      if (chap && chap.quiz) {
+        const perfect = chap.quiz.every((q, idx) => STATE.quizAnswers[idx] === q.correct);
+        if (perfect) {
+          setTimeout(fireConfetti, 150);
+          let changed = false;
+          chap.topics.forEach(t => {
+            if (!STATE.completedTopics.includes(t.id)) { STATE.completedTopics.push(t.id); changed = true; }
+          });
+          if (changed) persistUser({ completedTopics: STATE.completedTopics });
+        }
+      }
+    } else if (action === "retry-quiz") {
+      haptic("medium");
+      STATE.quizAnswers = {};
+      STATE.quizSubmitted = false;
+    } else if (action === "open-ai") {
+      haptic("medium");
+      STATE.aiModalOpen = true;
+    } else if (action === "close-ai") {
+      haptic("light");
+      STATE.aiModalOpen = false;
+    } else if (action === "continue-study") {
+      haptic("light");
+      let resumed = false;
+      if (STATE.lastRead) {
+        const s = APP_DATA.find(s => s.id === STATE.lastRead.subjectId);
+        const c = s ? s.chapters.find(c => c.id === STATE.lastRead.chapterId) : null;
+        if (c) {
+          STATE.subjectId = STATE.lastRead.subjectId;
+          STATE.subSectionId = STATE.lastRead.subSectionId;
+          STATE.chapterId = STATE.lastRead.chapterId;
+          STATE.activeTopicIndex = Math.min(STATE.lastRead.topicIndex || 0, c.topics.length - 1);
+          resumed = true;
+        }
+      }
+      if (!resumed) {
+        // No history yet, or the last-read chapter was removed by the
+        // admin panel — fall back to the first available chapter.
+        const firstSubject = APP_DATA[0];
+        const firstChapter = firstSubject && firstSubject.chapters[0];
+        STATE.subjectId = firstSubject ? firstSubject.id : STATE.subjectId;
+        STATE.subSectionId = firstChapter ? firstChapter.subSectionId : null;
+        STATE.chapterId = firstChapter ? firstChapter.id : STATE.chapterId;
+        STATE.activeTopicIndex = 0;
+      }
+      STATE.flow = "topicReader";
+    }
+
+    render();
+  };
+}
+
+render();
+</script>
+</body>
+</html>
